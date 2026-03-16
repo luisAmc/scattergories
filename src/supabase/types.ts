@@ -7,11 +7,11 @@ export interface Player {
 }
 
 export const GamePhase = {
-    LOBBY: 'lobby',
-    PLAYING: 'playing',
-    VOTING: 'voting',
-    RESULTS: 'results',
-    FINISHED: 'finished',
+    LOBBY: "lobby",
+    PLAYING: "playing",
+    VOTING: "voting",
+    RESULTS: "results",
+    FINISHED: "finished",
 } as const;
 
 export type GamePhase = (typeof GamePhase)[keyof typeof GamePhase];
@@ -19,7 +19,7 @@ export type GamePhase = (typeof GamePhase)[keyof typeof GamePhase];
 export interface Game {
     id: string;
     code: string;
-    hostId: string;
+    host_id: string;
     phase: GamePhase;
     round_number: number;
     letter: string;
@@ -31,7 +31,13 @@ export interface Answer {
     id: string;
     game_id: string;
     player_id: string;
-    category: string;
+    category_id: string;
     answer: string;
+    created_at: string;
+}
+
+export interface Category {
+    id: string;
+    name: string;
     created_at: string;
 }

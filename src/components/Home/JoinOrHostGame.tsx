@@ -4,11 +4,12 @@ import { Input } from "../shared/Input";
 import z from "zod";
 import { FieldError, Form, useZodForm } from "../shared/Form";
 import { SubmitButton } from "../shared/SubmitButton";
-import { CODE_LENGTH, SESSION_KEY } from "~/utils/constants";
+import { CATEGORIES, CODE_LENGTH, SESSION_KEY } from "~/utils/constants";
 import { useState } from "react";
 import { generateGameCode } from "~/utils/generateGameCode";
 import { supabase } from "~/supabase/client";
 import { GamePhase } from "~/supabase/types";
+import { ErrorMessage } from "../shared/ErrorMessage";
 
 const joinGameSchema = z.object({
     gameCode: z
@@ -40,7 +41,7 @@ export function JoinOrHostGame() {
 
             const { data: host, error: hostError } = await supabase
                 .from("players")
-                .insert({ game_id: game.id, name: "Anfitrión" })
+                .insert({ game_id: game.id, name: "" })
                 .select("id")
                 .single();
 
@@ -55,6 +56,14 @@ export function JoinOrHostGame() {
                 .from("games")
                 .update({ host_id: host.id })
                 .eq("id", game.id);
+
+            await supabase.from("categories").insert(
+                CATEGORIES.map((category, index) => ({
+                    game_id: game.id,
+                    name: category,
+                    position: index,
+                })),
+            );
 
             sessionStorage.setItem(
                 SESSION_KEY,
@@ -141,18 +150,6 @@ export function JoinOrHostGame() {
                     Crear un nuevo juego
                 </Button>
             </div>
-        </div>
-    );
-}
-
-function ErrorMessage({ error }: { error: string | null }) {
-    if (!error) {
-        return null;
-    }
-
-    return (
-        <div className="mb-4 border border-red-500 bg-red-50 p-4 text-sm font-semibold text-red-500">
-            <p>{error}</p>
         </div>
     );
 }

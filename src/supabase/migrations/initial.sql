@@ -12,6 +12,7 @@ create table public.games (
       'finished'
     )
   ),
+  round_category_ids uuid[] default '{}',
   round_number int not null default 0,
   letter text,
   ends_at timestamptz,
@@ -31,7 +32,9 @@ add constraint fk_host foreign key (host_id) references public.players (id) on d
 
 create table public.categories (
   id uuid primary key default gen_random_uuid (),
+  game_id uuid not null references public.games (id) on delete cascade,
   name text not null,
+  position int not null default 0,
   created_at timestamptz not null default now()
 );
 
@@ -88,3 +91,5 @@ with
 create index idx_players_game_id on public.players (game_id);
 
 create index idx_answers_game_round on public.answers (game_id, round_number);
+
+create index idx_categories_game_id on public.categories(game_id);

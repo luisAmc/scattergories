@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -21,6 +21,9 @@
 }
 
 :root {
+    --font-geist-sans: "Geist", sans-serif;
+    --font-geist-mono: "Geist Mono", monospace;
+
     --background: #ffffff;
     --foreground: oklch(0.25 0 0);
 
@@ -60,7 +63,8 @@
     * {
         @apply border-border outline-ring/50;
     }
-    body {
-        @apply bg-background text-foreground;
+    body,
+    #__next {
+        @apply bg-background text-foreground font-sans;
     }
 }

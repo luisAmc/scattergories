@@ -1,5 +1,5 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ComponentProps } from 'react';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ComponentProps } from "react";
 import {
     FieldValues,
     FormProvider,
@@ -8,9 +8,9 @@ import {
     useFormContext,
     UseFormProps,
     UseFormReturn,
-} from 'react-hook-form';
-import z, { ZodObject, ZodType } from 'zod';
-import { cn } from '~/utils/cn';
+} from "react-hook-form";
+import z, { ZodObject, ZodType } from "zod";
+import { cn } from "~/utils/cn";
 
 interface UseZodFormProps<T extends ZodType<any, any>> extends UseFormProps<
     z.infer<T>
@@ -24,7 +24,7 @@ export const useZodForm = <T extends ZodObject<any, any>>({
 }: UseZodFormProps<T>) => {
     return useForm({
         ...formConfig,
-        mode: 'onChange',
+        mode: "onChange",
         resolver: zodResolver(schema) as any, // Mmm
     });
 };
@@ -45,15 +45,15 @@ export function FieldError({ name }: FieldErrorsProps) {
     if (!error) return null;
 
     return (
-        <div className="mt-1 text-sm font-semibold text-red-500">
+        <div className="mt-1 font-semibold text-red-500">
             {error.message as string}
         </div>
     );
 }
 
 export interface FormProps<T extends FieldValues = any> extends Omit<
-    ComponentProps<'form'>,
-    'onSubmit'
+    ComponentProps<"form">,
+    "onSubmit"
 > {
     form: UseFormReturn<T>;
     onSubmit: SubmitHandler<T>;
@@ -76,7 +76,7 @@ export const Form = <T extends FieldValues>({
                 className="flex-1"
             >
                 <fieldset
-                    className={cn('flex h-full flex-col gap-y-4', className)}
+                    className={cn("flex h-full flex-col gap-y-4", className)}
                     disabled={form.formState.isSubmitting || disabled}
                 >
                     {children}
