@@ -1,12 +1,14 @@
 import { GameContextProvider, useGameContext } from "~/hooks/useGameContext";
 import { GamePhase } from "~/supabase/types";
 import { Lobby } from "./Lobby";
-import { TagIcon } from "lucide-react";
+import { PlayingRound } from "./PlayingRound";
+import { Voting } from "./Voting";
+import { AnimatePresence, motion } from "framer-motion";
 
 const CompByGamePhase = {
     [GamePhase.LOBBY]: <Lobby />,
-    [GamePhase.PLAYING]: <div>GamePhase.PLAYING</div>,
-    [GamePhase.VOTING]: <div>GamePhase.VOTING</div>,
+    [GamePhase.PLAYING]: <PlayingRound />,
+    [GamePhase.VOTING]: <Voting />,
     [GamePhase.RESULTS]: <div>GamePhase.RESULTS</div>,
     [GamePhase.FINISHED]: <div>GamePhase.FINISHED</div>,
 };
@@ -15,30 +17,8 @@ export function Game() {
     return (
         <div className="mx-auto w-full max-w-md space-y-6">
             <GameContextProvider>
-                <Header />
                 <GamePhaseContent />
             </GameContextProvider>
-        </div>
-    );
-}
-
-function Header() {
-    return (
-        <header className="flex items-center justify-between gap-y-2 font-mono">
-            <h1 className="text-6xl font-semibold">Stop!</h1>
-
-            <CodeTag />
-        </header>
-    );
-}
-
-function CodeTag() {
-    const { gameCode } = useGameContext();
-
-    return (
-        <div className="bg-foreground/10 flex w-fit items-center gap-x-1 rounded px-2 py-1">
-            <TagIcon className="size-3" />
-            <span>{gameCode}</span>
         </div>
     );
 }
@@ -47,4 +27,26 @@ function GamePhaseContent() {
     const { phase } = useGameContext();
 
     return <>{CompByGamePhase[phase]}</>;
+
+    // return (
+    //     <AnimatePresence mode="wait">
+    //         {phase === GamePhase.LOBBY && <Lobby key={GamePhase.LOBBY} />}
+
+    //         {phase === GamePhase.PLAYING && (
+    //             <PlayingRound key={GamePhase.PLAYING} />
+    //         )}
+
+    //         {phase === GamePhase.VOTING && <Voting key={GamePhase.VOTING} />}
+
+    //         {phase === GamePhase.RESULTS && (
+    //             <div key={GamePhase.RESULTS}>GamePhase.RESULTS</div>
+    //         )}
+
+    //         {phase === GamePhase.FINISHED && (
+    //             <div key={GamePhase.FINISHED}>GamePhase.FINISHED</div>
+    //         )}
+
+    //         <motion.div></motion.div>
+    //     </AnimatePresence>
+    // );
 }

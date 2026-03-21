@@ -10,6 +10,7 @@ import { generateGameCode } from "~/utils/generateGameCode";
 import { supabase } from "~/supabase/client";
 import { GamePhase } from "~/supabase/types";
 import { ErrorMessage } from "../shared/ErrorMessage";
+import { ArrowRightIcon, LoaderCircle, PlusIcon } from "lucide-react";
 
 const joinGameSchema = z.object({
     gameCode: z
@@ -20,12 +21,15 @@ const joinGameSchema = z.object({
 export function JoinOrHostGame() {
     const router = useRouter();
 
+    const [creatingGame, setCreatingGame] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const joinGameForm = useZodForm({ schema: joinGameSchema });
 
     async function handleCreateGame() {
         try {
+            setCreatingGame(true);
+
             const gameCode = generateGameCode();
 
             const { data: game, error: gameError } = await supabase
@@ -66,19 +70,21 @@ export function JoinOrHostGame() {
             );
 
             sessionStorage.setItem(
-                SESSION_KEY,
+                `${SESSION_KEY}:${gameCode}`,
                 JSON.stringify({ gameCode, player_id: host.id, isHost: true }),
             );
 
             await router.push(`/game/${gameCode}`);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Error desconocido");
+        } finally {
+            setCreatingGame(false);
         }
     }
 
     async function handleJoinGame(input: z.infer<typeof joinGameSchema>) {
         try {
-            const gameCode = input.gameCode;
+            const gameCode = input.gameCode.trim().toUpperCase();
 
             const { data: game, error: gameError } = await supabase
                 .from("games")
@@ -106,7 +112,7 @@ export function JoinOrHostGame() {
             }
 
             sessionStorage.setItem(
-                SESSION_KEY,
+                `${SESSION_KEY}:${gameCode}`,
                 JSON.stringify({
                     gameCode,
                     player_id: player.id,
@@ -121,7 +127,7 @@ export function JoinOrHostGame() {
     }
 
     return (
-        <div className="fixed inset-0 m-auto flex h-fit justify-center">
+        <div className="flex justify-center">
             <div className="flex w-full max-w-xs flex-col gap-4 sm:max-w-sm">
                 <ErrorMessage error={error} />
 
@@ -132,12 +138,22 @@ export function JoinOrHostGame() {
                             label="Código de juego (para unirte)"
                             placeholder="ABC123"
                             className="text-center font-bold tracking-[0.2rem] uppercase placeholder:font-normal placeholder:normal-case"
+                            maxLength={6}
                         />
 
                         <FieldError name="gameCode" />
                     </div>
 
-                    <SubmitButton>Unirse</SubmitButton>
+                    <SubmitButton>
+                        {joinGameForm.formState.isSubmitting ? (
+                            <span>Uniéndose</span>
+                        ) : (
+                            <>
+                                <ArrowRightIcon className="size-4" />
+                                <span>Unirse</span>
+                            </>
+                        )}
+                    </SubmitButton>
                 </Form>
 
                 <div className="text-foreground/60 my-2 flex items-center justify-center gap-x-2">
@@ -146,8 +162,22 @@ export function JoinOrHostGame() {
                     <span>&mdash;</span>
                 </div>
 
-                <Button variant="outline" onClick={handleCreateGame}>
-                    Crear un nuevo juego
+                <Button
+                    variant="outline"
+                    onClick={handleCreateGame}
+                    disabled={creatingGame}
+                >
+                    {creatingGame ? (
+                        <>
+                            <LoaderCircle className="size-4 animate-spin" />
+                            <span>Creando juego</span>
+                        </>
+                    ) : (
+                        <>
+                            <PlusIcon className="size-4" />
+                            <span>Crear un nuevo juego</span>
+                        </>
+                    )}
                 </Button>
             </div>
         </div>

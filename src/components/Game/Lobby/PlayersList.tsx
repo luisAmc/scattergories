@@ -36,7 +36,7 @@ export function PlayersList() {
                                 )}
 
                                 {isMe && (
-                                    <FlagIcon className="fill-foreground text-foreground size-3" />
+                                    <FlagIcon className="fill-primary text-primary size-3" />
                                 )}
                             </div>
                         </li>

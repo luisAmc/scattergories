@@ -56,7 +56,7 @@ export function RoundControls() {
 
         controlsForm.reset({
             duration: 90,
-            categories: categories.slice(0, 1).map((category) => category.id),
+            categories: categories.slice(0, 10).map((category) => category.id),
         });
 
         setIsSetupDone(true);
@@ -92,8 +92,6 @@ export function RoundControls() {
                 ends_at: endsAt,
             })
             .eq("id", game!.id);
-
-        console.log({ data, error });
 
         setStartingRound(false);
     }
@@ -190,9 +188,13 @@ export function RoundControls() {
                     </div>
                 </div>
 
-                <SubmitButton>
+                <SubmitButton disabled={!allPlayersHaveName}>
                     <TimerIcon className="size-4" />
-                    <span>Iniciar ronda</span>
+                    <span>
+                        {allPlayersHaveName
+                            ? "Iniciar ronda"
+                            : "Esperando los nombres de los jugadores..."}
+                    </span>
                 </SubmitButton>
             </Form>
 

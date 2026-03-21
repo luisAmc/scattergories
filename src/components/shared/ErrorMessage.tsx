@@ -4,7 +4,7 @@ export function ErrorMessage({ error }: { error: string | null }) {
     }
 
     return (
-        <div className="mb-4 border border-red-500 bg-red-50 p-4  font-semibold text-red-500">
+        <div className="mb-4 border border-red-500 bg-red-50 p-4 text-sm text-pretty text-red-500">
             <p>{error}</p>
         </div>
     );

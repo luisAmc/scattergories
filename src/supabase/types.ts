@@ -22,6 +22,7 @@ export interface Game {
     host_id: string;
     phase: GamePhase;
     round_number: number;
+    round_category_ids: string[];
     letter: string;
     ends_at: string;
     created_at: string;
@@ -32,12 +33,22 @@ export interface Answer {
     game_id: string;
     player_id: string;
     category_id: string;
-    answer: string;
+    round_number: number;
+    value: string;
+    created_at: string;
+}
+
+export interface AnswerVote {
+    id: string;
+    answer_id: string;
+    voter_player_id: string;
+    value: boolean;
     created_at: string;
 }
 
 export interface Category {
     id: string;
     name: string;
+    position: number;
     created_at: string;
 }

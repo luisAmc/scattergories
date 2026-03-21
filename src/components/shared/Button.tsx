@@ -12,10 +12,11 @@ const buttonVariants = cva(
                     "bg-primary text-primary-foreground hover:bg-primary/90",
                 secondary:
                     "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-                outline: "border border-primary hover:bg-muted",
+                outline: "border border-border hover:bg-muted",
             },
             size: {
                 default: "h-10 px-4 py-2",
+                sm: "h-8 px-3 py-1.5 text-sm",
                 icon: "size-10",
             },
         },

@@ -45,7 +45,7 @@ export function FieldError({ name }: FieldErrorsProps) {
     if (!error) return null;
 
     return (
-        <div className="mt-1 font-semibold text-red-500">
+        <div className="mt-1 text-sm text-pretty text-red-500">
             {error.message as string}
         </div>
     );
