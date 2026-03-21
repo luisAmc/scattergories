@@ -1,10 +1,17 @@
 import { createContext, type ReactNode, useContext, useMemo } from "react";
-import { Category, Game, GamePhase, Player } from "~/supabase/types";
+import { Answer, Category, Game, GamePhase, Player } from "~/supabase/types";
 import { useRouter } from "next/router";
 import { useGame } from "./useGame";
 import { usePlayers } from "./usePlayers";
 import { SESSION_KEY, SessionData } from "~/utils/constants";
 import { useCategories } from "./useCategories";
+import {
+    JoinGameFromInvite,
+    Skeleton as JoinGameFromInviteSkeleton,
+} from "~/components/Game/JoinGameFromInvite";
+import { NoGame } from "~/components/Game/NoGame";
+import { AlreadyStartedGame } from "~/components/Game/AlreadyStartedGame";
+import { useAnswers } from "./useAnswers";
 
 interface GameContextType {
     gameCode: string;
@@ -13,8 +20,10 @@ interface GameContextType {
     isLoading: boolean;
     players: Player[];
     categories: Category[];
+    answers: Answer[];
     me: Player | null;
     amIHost: boolean;
+    session: SessionData | null;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -41,12 +50,19 @@ export function GameContextProvider({ children }: GameContextProviderProps) {
         game?.id ?? null,
     );
 
+    const { answers, isLoading: areAnswersLoading } = useAnswers(
+        game?.id ?? null,
+        game?.phase ?? GamePhase.LOBBY,
+        game?.round_number ?? 0,
+    );
+
     const session = useMemo(() => {
         if (typeof window === "undefined") {
             return null;
         }
 
-        const item = sessionStorage.getItem(SESSION_KEY);
+        const gameSessionKey = `${SESSION_KEY}:${gameCode}`;
+        const item = sessionStorage.getItem(gameSessionKey);
 
         if (!item) {
             return null;
@@ -65,17 +81,32 @@ export function GameContextProvider({ children }: GameContextProviderProps) {
         ? (players.find((player) => player.id === session.player_id) ?? null)
         : null;
 
-    const isLoading = isGameLoading || arePlayersLoading;
+    const isLoading =
+        isGameLoading || arePlayersLoading || areCategoriesLoading;
+
+    const noGame = gameError || !game || !gameCode;
 
     if (isLoading) {
-        return <Shimmer />;
+        if (!session) {
+            return <JoinGameFromInviteSkeleton />;
+        }
+
+        // if (noGame) {
+        //     return <NoGameSkeleton />;
+        // }
+
+        return <LobbySkeleton />;
     }
 
-    if (!gameCode) {
-        return <NoGameCode />;
+    if (!session) {
+        if (game?.phase === GamePhase.LOBBY) {
+            return <JoinGameFromInvite gameCode={gameCode} />;
+        }
+
+        return <AlreadyStartedGame />;
     }
 
-    if (gameError || !game) {
+    if (noGame) {
         return <NoGame />;
     }
 
@@ -89,8 +120,11 @@ export function GameContextProvider({ children }: GameContextProviderProps) {
 
                 players,
                 categories,
+                answers,
                 me: player,
                 amIHost: session?.isHost ?? false,
+
+                session,
             }}
         >
             {children}
@@ -98,11 +132,11 @@ export function GameContextProvider({ children }: GameContextProviderProps) {
     );
 }
 
-function Shimmer() {
+function LobbySkeleton() {
     return (
         <div className="flex flex-col gap-y-6">
             <div className="flex items-center justify-between">
-                <div className="font-mono text-6xl font-semibold">Stop!</div>
+                <div className="bg-foreground/10 h-16 w-36 rounded"></div>
                 <div className="bg-foreground/10 h-8 w-22.5 rounded"></div>
             </div>
 
@@ -118,14 +152,6 @@ function Shimmer() {
             <div className="bg-foreground/10 mx-auto h-4 w-2/3 rounded"></div>
         </div>
     );
-}
-
-function NoGameCode() {
-    return <div>NoGameCode</div>;
-}
-
-function NoGame() {
-    return <div>NoGame</div>;
 }
 
 export function useGameContext() {
