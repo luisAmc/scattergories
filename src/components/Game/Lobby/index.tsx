@@ -5,6 +5,7 @@ import { RoundControls } from "./RoundControls";
 import { CheckIcon, CopyIcon, TagIcon } from "lucide-react";
 import { useState } from "react";
 import { Button } from "~/components/shared/Button";
+import { Legend } from "~/components/shared/Legend";
 
 export function Lobby() {
     const { amIHost } = useGameContext();
@@ -24,12 +25,10 @@ export function Lobby() {
     );
 }
 
-function Header() {
+export function Header() {
     return (
         <header className="flex items-center justify-between gap-y-2">
-            <h1 className="font-instrument decoration-accent text-6xl underline decoration-wavy tracking-tight decoration-4">
-                Stop!
-            </h1>
+            <Legend size="6xl" />
 
             <CodeTag />
         </header>

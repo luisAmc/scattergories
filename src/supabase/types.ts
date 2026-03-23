@@ -23,6 +23,7 @@ export interface Game {
     phase: GamePhase;
     round_number: number;
     round_category_ids: string[];
+    voting_category_index: number;
     letter: string;
     ends_at: string;
     created_at: string;

@@ -5,6 +5,7 @@ import { supabase } from "~/supabase/client";
 import { SESSION_KEY } from "~/utils/constants";
 import { ErrorMessage } from "../shared/ErrorMessage";
 import { Button } from "../shared/Button";
+import { Legend } from "../shared/Legend";
 
 export function JoinGameFromInvite({ gameCode }: { gameCode: string }) {
     const router = useRouter();
@@ -58,10 +59,7 @@ export function JoinGameFromInvite({ gameCode }: { gameCode: string }) {
         <div className="fixed inset-0 m-auto flex h-fit flex-col items-center justify-center gap-12 p-4">
             <div className="flex flex-col items-center gap-y-2">
                 <div className="text-lg">
-                    Te han invitado a un juego de{" "}
-                    <span className="font-instrument decoration-accent font-bold tracking-tight underline decoration-wavy">
-                        Stop!
-                    </span>
+                    Te han invitado a un juego de <Legend size="xl" />
                 </div>
 
                 <div className="bg-secondary text-secondary-foreground flex items-center gap-x-1 rounded px-2 py-1 font-mono tracking-widest">

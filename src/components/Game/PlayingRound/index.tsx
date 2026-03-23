@@ -9,6 +9,7 @@ import { useGameContext } from "~/hooks/useGameContext";
 import { usePlayerPresence } from "~/hooks/usePlayerPresence";
 import { useTimeLeft } from "~/hooks/useTimeLeft";
 import z from "zod";
+import { Header as LobbyHeader } from "../Lobby";
 
 function generateAnswersFormSchema(categories: Category[]) {
     const shape: Record<string, z.ZodType<string | undefined>> = {};
@@ -68,7 +69,10 @@ export function PlayingRound() {
             const moveGameToVoting = async () => {
                 await supabase
                     .from("games")
-                    .update({ phase: GamePhase.VOTING })
+                    .update({
+                        phase: GamePhase.VOTING,
+                        voting_category_index: 0,
+                    })
                     .eq("id", game.id);
             };
 
@@ -108,6 +112,8 @@ export function PlayingRound() {
 
     return (
         <div className="space-y-6">
+            <LobbyHeader />
+
             <div className="bg-background/5 border-foreground sticky top-0 z-10 -mx-4 -mt-8 border-b-2 backdrop-blur">
                 <div className="divide-foreground grid grid-cols-3 divide-x-2">
                     <div className="col-span-2 grid place-items-center py-6">
@@ -135,7 +141,7 @@ export function PlayingRound() {
                     {roundCategories.map((category, index) => (
                         <div
                             key={category.id}
-                            className="flex flex-col gap-y-1"
+                            className="flex flex-col gap-y-2"
                         >
                             <div className="flex items-center gap-x-2">
                                 <span className="text-foreground/60 text-sm">

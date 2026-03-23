@@ -2,9 +2,14 @@ import { cva, VariantProps } from "class-variance-authority";
 import { ButtonOrLink, ButtonOrLinkProps } from "./ButtonOrLink";
 import { forwardRef } from "react";
 import { cn } from "~/utils/cn";
+import { LoaderCircle } from "lucide-react";
 
 const buttonVariants = cva(
-    "text-sm has-[>svg]:gap-1 inline-flex items-center justify-center whitespace-nowrap  font-medium transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-offset-2 focus-visible:ring-ring disabled:opacity-50",
+    [
+        "text-sm inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors",
+        "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-offset-2 focus-visible:ring-ring",
+        "disabled:opacity-50 disabled:cursor-not-allowed has-[>svg]:gap-1",
+    ],
     {
         variants: {
             variant: {
@@ -44,6 +49,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                 {...props}
                 disabled={props.disabled || loading}
             >
+                {loading && <LoaderCircle className="size-4 animate-spin" />}
+
                 {children}
             </ButtonOrLink>
         );

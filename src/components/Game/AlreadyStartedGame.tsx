@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 import { Button } from "../shared/Button";
+import { Legend } from "../shared/Legend";
 
 export function AlreadyStartedGame() {
     const router = useRouter();
@@ -8,11 +9,7 @@ export function AlreadyStartedGame() {
         <div className="fixed inset-0 m-auto flex h-fit flex-col items-center justify-center gap-12 p-4">
             <div className="flex flex-col items-center gap-y-2">
                 <div className="text-center text-lg text-pretty">
-                    Este juego de{" "}
-                    <span className="font-bold underline decoration-wavy">
-                        Stop!
-                    </span>{" "}
-                    ya ha comenzado.
+                    Este juego de <Legend size="xl" /> ya ha comenzado.
                 </div>
 
                 <p className="text-foreground/60 text-center text-sm text-pretty">
