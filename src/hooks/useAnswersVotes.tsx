@@ -56,7 +56,7 @@ export function useAnswersVotes() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [game, answers]);
+    }, [game, JSON.stringify(answers)]);
 
     useEffect(() => {
         if (!answersVotes) {

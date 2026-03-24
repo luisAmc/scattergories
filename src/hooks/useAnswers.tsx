@@ -11,7 +11,7 @@ export function useAnswers(
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        if (!gameId || gamePhase !== GamePhase.VOTING) {
+        if (!gameId) {
             setIsLoading(false);
             return;
         }

@@ -8,7 +8,6 @@ import {
     CircleQuestionMark,
     CircleXIcon,
     FlagIcon,
-    ListOrderedIcon,
     SnailIcon,
     XIcon,
 } from "lucide-react";
@@ -33,6 +32,8 @@ export function Voting() {
 
     const { answersVotes, votesByAnswer } = useAnswersVotes();
 
+    const [goingToNextCategory, setGoingToNextCategory] = useState(false);
+    const [goingToPrevCategory, setGoingToPrevCategory] = useState(false);
     const [votesTaken, setVotesTaken] = useState<Record<string, boolean>>({});
     const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(
         null,
@@ -110,14 +111,16 @@ export function Voting() {
         (game?.round_category_ids.length ?? 0) - 1;
 
     async function goToNextCategory() {
-        if (!amIHost || !game) {
+        if (!amIHost || !game || goingToNextCategory) {
             return;
         }
+
+        setGoingToNextCategory(true);
 
         if (isLastCategory) {
             await supabase
                 .from("games")
-                .update({ phase: GamePhase.RESULTS })
+                .update({ phase: GamePhase.RESULTS, voting_category_index: 0 })
                 .eq("id", game.id);
         } else {
             await supabase
@@ -127,12 +130,16 @@ export function Voting() {
                 })
                 .eq("id", game.id);
         }
+
+        setGoingToNextCategory(false);
     }
 
     async function goToPrevCategory() {
-        if (!amIHost || !game) {
+        if (!amIHost || !game || goingToPrevCategory) {
             return;
         }
+
+        setGoingToPrevCategory(true);
 
         await supabase
             .from("games")
@@ -140,6 +147,8 @@ export function Voting() {
                 voting_category_index: game.voting_category_index - 1,
             })
             .eq("id", game.id);
+
+        setGoingToPrevCategory(false);
     }
 
     const currentAnswers = useMemo(() => {
@@ -147,21 +156,31 @@ export function Voting() {
             return undefined;
         }
 
-        return answersByCategory.get(currentCategoryId);
+        return answersByCategory
+            .get(currentCategoryId)
+            ?.sort(
+                (a, b) =>
+                    playersMap
+                        .get(a.player_id)
+                        ?.name.localeCompare(
+                            playersMap.get(b.player_id)?.name ?? "",
+                        ) ?? 0,
+            );
     }, [answersByCategory, currentCategoryId]);
 
     // TODO: Refactor - Separate in components
     return (
-        <div className="flex flex-col gap-y-6">
-            <LobbyHeader />
+        <AnimatePresence mode="wait">
+            <div className="flex flex-col gap-y-6">
+                <LobbyHeader />
 
-            <AnimatePresence mode="wait">
                 <motion.div
-                    className="flex flex-col gap-y-4"
+                    key="voting"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex flex-col gap-y-4"
                 >
                     <div className="space-y-4">
                         <h2 className="flex items-center justify-between gap-1 border-b px-2 text-xl font-medium">
@@ -355,42 +374,51 @@ export function Voting() {
                         </div>
                     </div>
                 </motion.div>
-            </AnimatePresence>
 
-            {amIHost && (
-                <div className="flex items-center gap-2">
-                    <Button
-                        disabled={game?.voting_category_index === 0}
-                        size="icon"
-                        variant="secondary"
-                        className="w-12"
-                        onClick={goToPrevCategory}
-                    >
-                        <ArrowLeftIcon className="size-4" />
-                    </Button>
+                {amIHost && (
+                    <div className="flex items-center gap-2">
+                        <Button
+                            disabled={
+                                goingToPrevCategory ||
+                                game?.voting_category_index === 0
+                            }
+                            size="icon"
+                            variant="secondary"
+                            className="w-12"
+                            onClick={goToPrevCategory}
+                            loading={goingToPrevCategory}
+                        >
+                            <ArrowLeftIcon className="size-4" />
+                        </Button>
 
-                    <Button onClick={goToNextCategory} className="w-full">
-                        {isLastCategory ? (
-                            <>
-                                <span>Ir a resultados</span>
-                            </>
-                        ) : (
-                            <>
-                                <span>Siguiente categoría</span>
-                            </>
-                        )}
+                        <Button
+                            onClick={goToNextCategory}
+                            className="w-full"
+                            loading={goingToNextCategory}
+                            disabled={goingToNextCategory}
+                        >
+                            {isLastCategory ? (
+                                <>
+                                    <span>Ir a resultados</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>Siguiente categoría</span>
+                                </>
+                            )}
 
-                        <ArrowRightIcon className="size-4" />
-                    </Button>
-                </div>
-            )}
+                            <ArrowRightIcon className="size-4" />
+                        </Button>
+                    </div>
+                )}
 
-            {!amIHost && (
-                <p className="text-foreground/60 text-center text-sm text-pretty">
-                    El anfitrión avanzará a la siguiente categoría.
-                </p>
-            )}
-        </div>
+                {!amIHost && (
+                    <p className="text-foreground/60 text-center text-sm text-pretty">
+                        El anfitrión avanzará a la siguiente categoría.
+                    </p>
+                )}
+            </div>
+        </AnimatePresence>
     );
 }
 

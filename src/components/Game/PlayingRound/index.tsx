@@ -9,7 +9,8 @@ import { useGameContext } from "~/hooks/useGameContext";
 import { usePlayerPresence } from "~/hooks/usePlayerPresence";
 import { useTimeLeft } from "~/hooks/useTimeLeft";
 import z from "zod";
-import { Header as LobbyHeader } from "../Lobby";
+import { Button } from "~/components/shared/Button";
+import { AnimatePresence, motion } from "framer-motion";
 
 function generateAnswersFormSchema(categories: Category[]) {
     const shape: Record<string, z.ZodType<string | undefined>> = {};
@@ -111,75 +112,125 @@ export function PlayingRound() {
     );
 
     return (
-        <div className="space-y-6">
-            <LobbyHeader />
+        <AnimatePresence mode="wait">
+            <motion.div
+                key="playing-round"
+                className="space-y-6"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.3 }}
+            >
+                <div className="bg-background/5 border-foreground sticky top-0 z-10 -mx-4 -mt-8 border-b-2 backdrop-blur">
+                    <div className="divide-foreground grid grid-cols-3 divide-x-2">
+                        <div className="col-span-2 grid place-items-center py-6">
+                            <span className="border-foreground flex size-24 items-center justify-center rounded-full border-3 font-mono text-7xl">
+                                {game.letter}
+                            </span>
+                        </div>
 
-            <div className="bg-background/5 border-foreground sticky top-0 z-10 -mx-4 -mt-8 border-b-2 backdrop-blur">
-                <div className="divide-foreground grid grid-cols-3 divide-x-2">
-                    <div className="col-span-2 grid place-items-center py-6">
-                        <span className="border-foreground flex size-24 items-center justify-center rounded-full border-3 font-mono text-7xl">
-                            {game.letter}
-                        </span>
-                    </div>
+                        <div className="grid place-items-center">
+                            <div className="flex flex-col justify-center gap-y-2">
+                                <Timer timeLeft={timeLeft} />
 
-                    <div className="grid place-items-center">
-                        <div className="flex flex-col justify-center gap-y-2">
-                            <Timer timeLeft={timeLeft} />
-
-                            <div className="text-foreground bg-foreground/5 rounded px-2 py-1 text-center text-xs">
-                                Ronda {game.round_number}
+                                <div className="text-foreground bg-foreground/5 rounded px-2 py-1 text-center text-xs">
+                                    Ronda {game.round_number}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <Instructions />
+                <Instructions />
 
-            <Form form={answersForm} onSubmit={() => {}}>
-                <div className="flex flex-col gap-y-4">
-                    {roundCategories.map((category, index) => (
-                        <div
-                            key={category.id}
-                            className="flex flex-col gap-y-2"
-                        >
-                            <div className="flex items-center gap-x-2">
-                                <span className="text-foreground/60 text-sm">
-                                    {(index + 1).toString().padStart(2, "0")}.
-                                </span>
-
-                                <span className="text-sm">{category.name}</span>
-
-                                {playersInCategory[category.id]?.map(
-                                    (playerPresence) => (
-                                        <div
-                                            key={playerPresence.playerId}
-                                            className="bg-accent text-accent-foreground inline-flex items-center justify-center border-2 px-1 text-xs font-medium"
-                                        >
-                                            {playerPresence.playerName}
-                                        </div>
-                                    ),
-                                )}
-                            </div>
-
-                            <Input
-                                {...answersForm.register(category.id)}
-                                placeholder={randomAnswerPlaceholder[index]}
-                                className="placeholder:text-xs"
-                                onFocus={() => setCurrentCategory(category.id)}
-                                onBlur={(e) => {
-                                    setCurrentCategory(null);
-                                    saveAnswer(category.id, e.target.value);
+                <Form form={answersForm} onSubmit={() => {}}>
+                    <div className="flex flex-col gap-y-4">
+                        {roundCategories.map((category, index) => (
+                            <motion.div
+                                key={category.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{
+                                    duration: 0.3,
+                                    delay: index * 0.1,
                                 }}
-                            />
-                            <FieldError name={category.id} />
-                        </div>
-                    ))}
-                </div>
-            </Form>
+                                className="flex flex-col gap-y-2"
+                            >
+                                <div className="flex items-center gap-x-2">
+                                    <span className="text-foreground/60 text-sm">
+                                        {(index + 1)
+                                            .toString()
+                                            .padStart(2, "0")}
+                                        .
+                                    </span>
 
-            <TimerWatermark timeLeft={timeLeft} />
-        </div>
+                                    <span className="text-sm">
+                                        {category.name}
+                                    </span>
+
+                                    {playersInCategory[category.id]?.map(
+                                        (playerPresence) => (
+                                            <div
+                                                key={playerPresence.playerId}
+                                                className="bg-accent text-accent-foreground inline-flex items-center justify-center border-2 px-1 text-xs font-medium"
+                                            >
+                                                {playerPresence.playerName}
+                                            </div>
+                                        ),
+                                    )}
+                                </div>
+
+                                <Input
+                                    {...answersForm.register(category.id)}
+                                    placeholder={randomAnswerPlaceholder[index]}
+                                    className="placeholder:text-xs"
+                                    onFocus={() =>
+                                        setCurrentCategory(category.id)
+                                    }
+                                    onBlur={(e) => {
+                                        setCurrentCategory(null);
+                                        saveAnswer(category.id, e.target.value);
+                                    }}
+                                />
+                                <FieldError name={category.id} />
+                            </motion.div>
+                        ))}
+
+                        <motion.div
+                            key="save-answers-button"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{
+                                duration: 0.3,
+                                delay: 0.5,
+                            }}
+                            className="flex flex-col"
+                        >
+                            <Button
+                                onClick={() => {
+                                    const answers = answersForm.getValues();
+
+                                    Object.entries(answers).forEach(
+                                        ([categoryId, value]) => {
+                                            if (value?.trim()) {
+                                                saveAnswer(
+                                                    categoryId,
+                                                    value.trim(),
+                                                );
+                                            }
+                                        },
+                                    );
+                                }}
+                            >
+                                <span>Guardar respuestas</span>
+                            </Button>
+                        </motion.div>
+                    </div>
+                </Form>
+
+                <TimerWatermark timeLeft={timeLeft} />
+            </motion.div>
+        </AnimatePresence>
     );
 }
 

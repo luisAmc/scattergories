@@ -1,10 +1,19 @@
 import { cn } from "~/utils/cn";
 import { doesPlayerHaveName } from "./doesPlayerHaveName";
-import { FlagIcon } from "lucide-react";
+import { BalloonIcon, CrownIcon, FlagIcon, MedalIcon } from "lucide-react";
 import { useGameContext } from "~/hooks/useGameContext";
+import { useMemo } from "react";
 
 export function PlayersList() {
     const { game, players, me } = useGameContext();
+
+    const sortedPlayers = useMemo(() => {
+        if (!game || !players || !Array.isArray(players)) {
+            return [];
+        }
+
+        return players.sort((a, b) => b.score - a.score);
+    }, [players, game]);
 
     return (
         <div className="flex flex-col gap-y-2">
@@ -13,7 +22,7 @@ export function PlayersList() {
             </div>
 
             <ul className="flex flex-col gap-2">
-                {players.map((player) => {
+                {sortedPlayers.map((player, index) => {
                     const isMe = player.id === me?.id;
 
                     return (
@@ -37,6 +46,28 @@ export function PlayersList() {
 
                                 {isMe && (
                                     <FlagIcon className="fill-primary text-primary size-3" />
+                                )}
+
+                                {(game?.round_number ?? 0) > 0 && (
+                                    <>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-foreground/60 text-xs">
+                                                {index === 0 ? (
+                                                    <CrownIcon className="size-4 fill-yellow-300 text-yellow-600" />
+                                                ) : index === 1 ? (
+                                                    <MedalIcon className="size-4 fill-slate-300 text-slate-600" />
+                                                ) : index === 2 ? (
+                                                    <BalloonIcon className="size-4 fill-orange-300 text-orange-600" />
+                                                ) : (
+                                                    ""
+                                                )}
+                                            </span>
+                                        </div>
+
+                                        <span className="text-foreground/60 text-xs">
+                                            {player.score}
+                                        </span>
+                                    </>
                                 )}
                             </div>
                         </li>

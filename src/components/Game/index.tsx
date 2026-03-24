@@ -3,14 +3,15 @@ import { GamePhase } from "~/supabase/types";
 import { Lobby } from "./Lobby";
 import { PlayingRound } from "./PlayingRound";
 import { Voting } from "./Voting";
-import { AnimatePresence, motion } from "framer-motion";
+import { Results } from "./Results";
+import { Finished } from "./Finished";
 
 const CompByGamePhase = {
     [GamePhase.LOBBY]: <Lobby />,
     [GamePhase.PLAYING]: <PlayingRound />,
     [GamePhase.VOTING]: <Voting />,
-    [GamePhase.RESULTS]: <div>GamePhase.RESULTS</div>,
-    [GamePhase.FINISHED]: <div>GamePhase.FINISHED</div>,
+    [GamePhase.RESULTS]: <Results />,
+    [GamePhase.FINISHED]: <Finished />,
 };
 
 export function Game() {
@@ -27,26 +28,4 @@ function GamePhaseContent() {
     const { phase } = useGameContext();
 
     return <>{CompByGamePhase[phase]}</>;
-
-    // return (
-    //     <AnimatePresence mode="wait">
-    //         {phase === GamePhase.LOBBY && <Lobby key={GamePhase.LOBBY} />}
-
-    //         {phase === GamePhase.PLAYING && (
-    //             <PlayingRound key={GamePhase.PLAYING} />
-    //         )}
-
-    //         {phase === GamePhase.VOTING && <Voting key={GamePhase.VOTING} />}
-
-    //         {phase === GamePhase.RESULTS && (
-    //             <div key={GamePhase.RESULTS}>GamePhase.RESULTS</div>
-    //         )}
-
-    //         {phase === GamePhase.FINISHED && (
-    //             <div key={GamePhase.FINISHED}>GamePhase.FINISHED</div>
-    //         )}
-
-    //         <motion.div></motion.div>
-    //     </AnimatePresence>
-    // );
 }
