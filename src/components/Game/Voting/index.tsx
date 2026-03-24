@@ -151,12 +151,11 @@ export function Voting() {
     }, [answersByCategory, currentCategoryId]);
 
     // TODO: Refactor - Separate in components
-    // TODO: Add loading state for the answers
     return (
         <div className="flex flex-col gap-y-6">
             <LobbyHeader />
 
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
                 <motion.div
                     className="flex flex-col gap-y-4"
                     initial={{ opacity: 0, y: 10 }}
@@ -185,167 +184,174 @@ export function Voting() {
                         </h2>
 
                         <div className="flex flex-col gap-4">
-                            {currentAnswers && currentAnswers.length > 0 ? (
-                                currentAnswers?.map((answer, index) => {
-                                    const isMyAnswer =
-                                        answer.player_id === me?.id;
+                            {!currentAnswers && <VotingSkeleton />}
 
-                                    const myVote =
-                                        votesTaken[answer.id] ??
-                                        answersVotes.find(
-                                            (vote) =>
-                                                vote.answer_id === answer.id &&
-                                                vote.voter_player_id === me?.id,
-                                        )?.value ??
-                                        null;
+                            {currentAnswers &&
+                                (currentAnswers.length > 0 ? (
+                                    currentAnswers?.map((answer, index) => {
+                                        const isMyAnswer =
+                                            answer.player_id === me?.id;
 
-                                    const acceptedVotes =
-                                        votesByAnswer[answer.id]?.accepted ?? 0;
+                                        const myVote =
+                                            votesTaken[answer.id] ??
+                                            answersVotes.find(
+                                                (vote) =>
+                                                    vote.answer_id ===
+                                                        answer.id &&
+                                                    vote.voter_player_id ===
+                                                        me?.id,
+                                            )?.value ??
+                                            null;
 
-                                    const rejectedVotes =
-                                        votesByAnswer[answer.id]?.rejected ?? 0;
+                                        const acceptedVotes =
+                                            votesByAnswer[answer.id]
+                                                ?.accepted ?? 0;
 
-                                    const missingVotes =
-                                        players.length -
-                                        (acceptedVotes + rejectedVotes) -
-                                        1;
+                                        const rejectedVotes =
+                                            votesByAnswer[answer.id]
+                                                ?.rejected ?? 0;
 
-                                    const points =
-                                        acceptedVotes - rejectedVotes;
+                                        const missingVotes =
+                                            players.length -
+                                            (acceptedVotes + rejectedVotes) -
+                                            1;
 
-                                    return (
-                                        <motion.div
-                                            key={answer.id}
-                                            className="flex flex-col gap-1"
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{
-                                                duration: 0.3,
-                                                delay: index * 0.1,
-                                            }}
-                                        >
-                                            <div className="text-foreground/60 text-sm">
-                                                <div className="flex items-center gap-2">
-                                                    <span>
-                                                        {
-                                                            playersMap.get(
-                                                                answer.player_id,
-                                                            )?.name
-                                                        }
-                                                    </span>
+                                        const points =
+                                            acceptedVotes - rejectedVotes;
 
-                                                    <div className="flex items-center">
-                                                        {Array.from({
-                                                            length: acceptedVotes,
-                                                        }).map((_, i) => (
-                                                            <CircleCheckIcon
-                                                                key={`accepted-${i}`}
-                                                                className="animate-in fade-in slide-in-from-bottom-10 zoom-in-50 size-4 fill-green-100 text-green-700 duration-300 ease-in-out"
-                                                            />
-                                                        ))}
-
-                                                        {Array.from({
-                                                            length: rejectedVotes,
-                                                        }).map((_, i) => (
-                                                            <CircleXIcon
-                                                                key={`rejected-${i}`}
-                                                                className="animate-in fade-in slide-in-from-bottom-10 zoom-in-50 size-4 fill-red-100 text-red-700 duration-300 ease-in-out"
-                                                            />
-                                                        ))}
-
-                                                        {Array.from({
-                                                            length: missingVotes,
-                                                        }).map((_, i) => (
-                                                            <CircleQuestionMark
-                                                                key={`missing-${i}`}
-                                                                className="animate-in fade-in slide-in-from-bottom-10 zoom-in-50 size-4 duration-300 ease-in-out"
-                                                            />
-                                                        ))}
-                                                    </div>
-
-                                                    <span className="font-mono">
-                                                        {points >= 0
-                                                            ? `+${points}`
-                                                            : points}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <div
-                                                className={cn(
-                                                    "bg-foreground/5 flex h-14 items-center justify-between rounded border border-transparent px-4 py-2 text-sm",
-                                                    !answer.isValid &&
-                                                        "border-red-500",
-                                                )}
+                                        return (
+                                            <motion.div
+                                                key={answer.id}
+                                                className="flex flex-col gap-1"
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{
+                                                    duration: 0.3,
+                                                    delay: index * 0.1,
+                                                }}
                                             >
-                                                <div>{answer.value}</div>
+                                                <div className="text-foreground/60 text-sm">
+                                                    <div className="flex items-center gap-2">
+                                                        <span>
+                                                            {
+                                                                playersMap.get(
+                                                                    answer.player_id,
+                                                                )?.name
+                                                            }
+                                                        </span>
 
-                                                <div className="flex items-center gap-2">
-                                                    {!answer.isValid && (
-                                                        <div className="text-red-500">
-                                                            Inválido
+                                                        <div className="flex items-center">
+                                                            {Array.from({
+                                                                length: acceptedVotes,
+                                                            }).map((_, i) => (
+                                                                <CircleCheckIcon
+                                                                    key={`accepted-${i}`}
+                                                                    className="animate-in fade-in slide-in-from-bottom-10 zoom-in-50 size-4 fill-green-100 text-green-700 duration-300 ease-in-out"
+                                                                />
+                                                            ))}
+
+                                                            {Array.from({
+                                                                length: rejectedVotes,
+                                                            }).map((_, i) => (
+                                                                <CircleXIcon
+                                                                    key={`rejected-${i}`}
+                                                                    className="animate-in fade-in slide-in-from-bottom-10 zoom-in-50 size-4 fill-red-100 text-red-700 duration-300 ease-in-out"
+                                                                />
+                                                            ))}
+
+                                                            {Array.from({
+                                                                length: missingVotes,
+                                                            }).map((_, i) => (
+                                                                <CircleQuestionMark
+                                                                    key={`missing-${i}`}
+                                                                    className="animate-in fade-in slide-in-from-bottom-10 zoom-in-50 size-4 duration-300 ease-in-out"
+                                                                />
+                                                            ))}
                                                         </div>
-                                                    )}
 
-                                                    {answer.isValid &&
-                                                        (isMyAnswer ? (
-                                                            <FlagIcon className="fill-primary text-primary size-3" />
-                                                        ) : (
-                                                            <div className="flex items-center gap-1">
-                                                                <Button
-                                                                    size="icon"
-                                                                    variant="outline"
-                                                                    className={cn(
-                                                                        "rounded-full",
-                                                                        myVote ===
-                                                                            true &&
-                                                                            "border-green-700 bg-green-100 text-green-700",
-                                                                    )}
-                                                                    onClick={async () =>
-                                                                        voteAnswer(
-                                                                            answer.id,
-                                                                            true,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <CheckIcon className="size-4" />
-                                                                </Button>
-
-                                                                <Button
-                                                                    size="icon"
-                                                                    variant="outline"
-                                                                    className={cn(
-                                                                        "rounded-full",
-                                                                        myVote ===
-                                                                            false &&
-                                                                            "border-red-700 bg-red-100 text-red-700",
-                                                                    )}
-                                                                    onClick={async () =>
-                                                                        voteAnswer(
-                                                                            answer.id,
-                                                                            false,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <XIcon className="size-4" />
-                                                                </Button>
-                                                            </div>
-                                                        ))}
+                                                        <span className="font-mono">
+                                                            {points >= 0
+                                                                ? `+${points}`
+                                                                : points}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </motion.div>
-                                    );
-                                })
-                            ) : (
-                                <div className="bg-foreground/5 flex flex-col items-center gap-y-2 rounded p-8">
-                                    <SnailIcon className="text-primary size-20" />
 
-                                    <p className="text-foreground/60 text-center text-sm text-pretty">
-                                        No se escribieron respuestas para esta
-                                        categoría.
-                                    </p>
-                                </div>
-                            )}
+                                                <div
+                                                    className={cn(
+                                                        "bg-foreground/5 flex h-14 items-center justify-between rounded border border-transparent px-4 py-2 text-sm",
+                                                        !answer.isValid &&
+                                                            "border-red-500",
+                                                    )}
+                                                >
+                                                    <div>{answer.value}</div>
+
+                                                    <div className="flex items-center gap-2">
+                                                        {!answer.isValid && (
+                                                            <div className="text-red-500">
+                                                                Inválido
+                                                            </div>
+                                                        )}
+
+                                                        {answer.isValid &&
+                                                            (isMyAnswer ? (
+                                                                <FlagIcon className="fill-primary text-primary size-3" />
+                                                            ) : (
+                                                                <div className="flex items-center gap-1">
+                                                                    <Button
+                                                                        size="icon"
+                                                                        variant="outline"
+                                                                        className={cn(
+                                                                            "rounded-full",
+                                                                            myVote ===
+                                                                                true &&
+                                                                                "border-green-700 bg-green-100 text-green-700",
+                                                                        )}
+                                                                        onClick={async () =>
+                                                                            voteAnswer(
+                                                                                answer.id,
+                                                                                true,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <CheckIcon className="size-4" />
+                                                                    </Button>
+
+                                                                    <Button
+                                                                        size="icon"
+                                                                        variant="outline"
+                                                                        className={cn(
+                                                                            "rounded-full",
+                                                                            myVote ===
+                                                                                false &&
+                                                                                "border-red-700 bg-red-100 text-red-700",
+                                                                        )}
+                                                                        onClick={async () =>
+                                                                            voteAnswer(
+                                                                                answer.id,
+                                                                                false,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <XIcon className="size-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            ))}
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        );
+                                    })
+                                ) : (
+                                    <div className="bg-foreground/5 flex flex-col items-center gap-y-2 rounded p-8">
+                                        <SnailIcon className="text-primary size-20" />
+
+                                        <p className="text-foreground/60 text-center text-sm text-pretty">
+                                            No se escribieron respuestas para
+                                            esta categoría.
+                                        </p>
+                                    </div>
+                                ))}
                         </div>
                     </div>
                 </motion.div>
@@ -385,5 +391,54 @@ export function Voting() {
                 </p>
             )}
         </div>
+    );
+}
+
+function VotingSkeleton() {
+    return (
+        <motion.div
+            key="voting-skeleton"
+            className="flex flex-col gap-y-4"
+            exit={{ opacity: 0, y: 10, transition: { duration: 1 } }}
+        >
+            <div className="space-y-1">
+                <div className="flex items-center gap-x-1">
+                    <div className="bg-foreground/10 h-4 w-24 rounded"></div>
+
+                    <div className="flex items-center gap-x-0.5">
+                        <div className="bg-foreground/10 size-4 rounded-full"></div>
+                        <div className="bg-foreground/10 size-4 rounded-full"></div>
+                        <div className="bg-foreground/10 size-4 rounded-full"></div>
+                    </div>
+                </div>
+                <div className="bg-foreground/10 h-14 w-full rounded"></div>
+            </div>
+
+            <div className="space-y-1">
+                <div className="flex items-center gap-x-1">
+                    <div className="bg-foreground/10 h-4 w-24 rounded"></div>
+
+                    <div className="flex items-center gap-x-0.5">
+                        <div className="bg-foreground/10 size-4 rounded-full"></div>
+                        <div className="bg-foreground/10 size-4 rounded-full"></div>
+                        <div className="bg-foreground/10 size-4 rounded-full"></div>
+                    </div>
+                </div>
+                <div className="bg-foreground/10 h-14 w-full rounded"></div>
+            </div>
+
+            <div className="space-y-1">
+                <div className="flex items-center gap-x-1">
+                    <div className="bg-foreground/10 h-4 w-24 rounded"></div>
+
+                    <div className="flex items-center gap-x-0.5">
+                        <div className="bg-foreground/10 size-4 rounded-full"></div>
+                        <div className="bg-foreground/10 size-4 rounded-full"></div>
+                        <div className="bg-foreground/10 size-4 rounded-full"></div>
+                    </div>
+                </div>
+                <div className="bg-foreground/10 h-14 w-full rounded"></div>
+            </div>
+        </motion.div>
     );
 }
