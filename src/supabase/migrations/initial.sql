@@ -59,6 +59,8 @@ create table public.answer_votes (
   unique (answer_id, voter_player_id)
 );
 
+alter table public.answer_votes replica identity FULL;
+
 -- Realtime: add tables to publication (Supabase dashboard also has this under Database → Replication)
 alter publication supabase_realtime
 add table public.games;

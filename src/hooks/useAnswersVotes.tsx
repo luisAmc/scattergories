@@ -1,23 +1,31 @@
 import { useEffect, useState } from "react";
 import { useGameContext } from "./useGameContext";
-import { AnswerVote, GamePhase } from "~/supabase/types";
+import { Answer, AnswerVote, GamePhase } from "~/supabase/types";
 import { supabase } from "~/supabase/client";
 
-type VotesByAnswer = Record<
+export type VotesByAnswer = Record<
     string,
     { total: number; accepted: number; rejected: number }
 >;
 
-export function useAnswersVotes() {
-    const { game, answers } = useGameContext();
+interface UseAnswersVotesProps {
+    gameId: string | null;
+    gameRound: number;
+    answers: Answer[];
+}
 
+export function useAnswersVotes({
+    gameId,
+    gameRound,
+    answers,
+}: UseAnswersVotesProps) {
     const [answersVotes, setAnswersVotes] = useState<AnswerVote[]>([]);
     const [votesByAnswer, setVotesByAnswer] = useState<VotesByAnswer>({});
 
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        if (!game || !answers) {
+        if (!gameId || !gameRound || !answers) {
             setIsLoading(false);
             return;
         }
@@ -36,9 +44,7 @@ export function useAnswersVotes() {
 
         getAnswersVotes();
 
-        const channel = supabase.channel(
-            `answer_votes:${game.id}:${game.round_number}`,
-        );
+        const channel = supabase.channel(`answer_votes:${gameId}:${gameRound}`);
 
         channel
             .on(
@@ -56,7 +62,7 @@ export function useAnswersVotes() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [game, JSON.stringify(answers)]);
+    }, [gameId, gameRound, JSON.stringify(answers)]);
 
     useEffect(() => {
         if (!answersVotes) {

@@ -1,14 +1,14 @@
 import { GameContextProvider, useGameContext } from "~/hooks/useGameContext";
 import { GamePhase } from "~/supabase/types";
 import { Lobby } from "./Lobby";
-import { PlayingRound } from "./PlayingRound";
+import { Playing } from "./Playing";
 import { Voting } from "./Voting";
 import { Results } from "./Results";
 import { Finished } from "./Finished";
 
 const CompByGamePhase = {
     [GamePhase.LOBBY]: <Lobby />,
-    [GamePhase.PLAYING]: <PlayingRound />,
+    [GamePhase.PLAYING]: <Playing />,
     [GamePhase.VOTING]: <Voting />,
     [GamePhase.RESULTS]: <Results />,
     [GamePhase.FINISHED]: <Finished />,

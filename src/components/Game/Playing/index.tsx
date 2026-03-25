@@ -4,13 +4,14 @@ import { FieldError, Form, useZodForm } from "~/components/shared/Form";
 import { Input } from "~/components/shared/Input";
 import { supabase } from "~/supabase/client";
 import { Timer, TimerWatermark } from "./Timer";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useGameContext } from "~/hooks/useGameContext";
 import { usePlayerPresence } from "~/hooks/usePlayerPresence";
 import { useTimeLeft } from "~/hooks/useTimeLeft";
 import z from "zod";
 import { Button } from "~/components/shared/Button";
 import { AnimatePresence, motion } from "framer-motion";
+import { LoaderCircleIcon } from "lucide-react";
 
 function generateAnswersFormSchema(categories: Category[]) {
     const shape: Record<string, z.ZodType<string | undefined>> = {};
@@ -22,14 +23,20 @@ function generateAnswersFormSchema(categories: Category[]) {
     return z.object(shape);
 }
 
-export function PlayingRound() {
-    const { game, me, categories, amIHost } = useGameContext();
+export function Playing() {
+    const { game, me, answers, categories, amIHost } = useGameContext();
 
     if (!game) {
         return null;
     }
 
     const timeLeft = useTimeLeft();
+
+    const [savingAnswers, setSavingAnswers] = useState<Record<string, boolean>>(
+        {},
+    );
+
+    const hasPrefilledAnswers = useRef(false);
 
     const roundCategories = useMemo(() => {
         const selectedCategories = game.round_category_ids
@@ -87,8 +94,35 @@ export function PlayingRound() {
         schema: generateAnswersFormSchema(roundCategories),
     });
 
+    useEffect(() => {
+        if (!answers || hasPrefilledAnswers.current) {
+            return;
+        }
+
+        const playerAnswers = answers.filter(
+            (answer) => answer.player_id === me?.id,
+        );
+
+        if (playerAnswers.length === 0) {
+            return;
+        }
+
+        hasPrefilledAnswers.current = true;
+
+        answersForm.reset(
+            playerAnswers.reduce((acc, answer) => {
+                return {
+                    ...acc,
+                    [answer.category_id]: answer.value ?? "",
+                };
+            }, {}),
+        );
+    }, [answers, answersForm, me?.id]);
+
     const saveAnswer = useCallback(
         async (categoryId: string, text: string) => {
+            setSavingAnswers((prev) => ({ ...prev, [categoryId]: true }));
+
             const safeText = text.trim();
 
             if (!safeText) {
@@ -107,9 +141,33 @@ export function PlayingRound() {
                     onConflict: "game_id, player_id, category_id, round_number",
                 },
             );
+
+            setSavingAnswers((prev) => ({ ...prev, [categoryId]: false }));
         },
         [game.id, me?.id, roundCategories, game.round_number],
     );
+
+    async function saveAllAnswers() {
+        const answers = answersForm.getValues();
+
+        await Promise.all(
+            Object.entries(answers).map(async ([categoryId, value]) => {
+                if (value?.trim()) {
+                    setSavingAnswers((prev) => ({
+                        ...prev,
+                        [categoryId]: true,
+                    }));
+
+                    await saveAnswer(categoryId, value.trim());
+
+                    setSavingAnswers((prev) => ({
+                        ...prev,
+                        [categoryId]: false,
+                    }));
+                }
+            }),
+        );
+    }
 
     return (
         <AnimatePresence mode="wait">
@@ -180,18 +238,31 @@ export function PlayingRound() {
                                     )}
                                 </div>
 
-                                <Input
-                                    {...answersForm.register(category.id)}
-                                    placeholder={randomAnswerPlaceholder[index]}
-                                    className="placeholder:text-xs"
-                                    onFocus={() =>
-                                        setCurrentCategory(category.id)
-                                    }
-                                    onBlur={(e) => {
-                                        setCurrentCategory(null);
-                                        saveAnswer(category.id, e.target.value);
-                                    }}
-                                />
+                                <div className="relative">
+                                    <Input
+                                        {...answersForm.register(category.id)}
+                                        placeholder={
+                                            randomAnswerPlaceholder[index]
+                                        }
+                                        className="placeholder:text-xs"
+                                        onFocus={() =>
+                                            setCurrentCategory(category.id)
+                                        }
+                                        onBlur={(e) => {
+                                            setCurrentCategory(null);
+                                            saveAnswer(
+                                                category.id,
+                                                e.target.value,
+                                            );
+                                        }}
+                                    />
+
+                                    {savingAnswers[category.id] && (
+                                        <div className="absolute top-1/2 right-2 -translate-y-1/2">
+                                            <LoaderCircleIcon className="text-foreground/60 size-4 animate-spin" />
+                                        </div>
+                                    )}
+                                </div>
                                 <FieldError name={category.id} />
                             </motion.div>
                         ))}
@@ -207,20 +278,13 @@ export function PlayingRound() {
                             className="flex flex-col"
                         >
                             <Button
-                                onClick={() => {
-                                    const answers = answersForm.getValues();
-
-                                    Object.entries(answers).forEach(
-                                        ([categoryId, value]) => {
-                                            if (value?.trim()) {
-                                                saveAnswer(
-                                                    categoryId,
-                                                    value.trim(),
-                                                );
-                                            }
-                                        },
-                                    );
-                                }}
+                                disabled={Object.values(savingAnswers).some(
+                                    Boolean,
+                                )}
+                                loading={Object.values(savingAnswers).some(
+                                    Boolean,
+                                )}
+                                onClick={saveAllAnswers}
                             >
                                 <span>Guardar respuestas</span>
                             </Button>

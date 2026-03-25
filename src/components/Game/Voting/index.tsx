@@ -5,15 +5,16 @@ import {
     ArrowRightIcon,
     CheckIcon,
     CircleCheckIcon,
-    CircleQuestionMark,
     CircleXIcon,
     FlagIcon,
+    CircleQuestionMarkIcon,
     SnailIcon,
     XIcon,
+    EraserIcon,
+    LoaderCircleIcon,
 } from "lucide-react";
 import { cn } from "~/utils/cn";
 import { supabase } from "~/supabase/client";
-import { useAnswersVotes } from "~/hooks/useAnswersVotes";
 import { useGameContext } from "~/hooks/useGameContext";
 import { useEffect, useMemo, useState } from "react";
 import { Header as LobbyHeader } from "../Lobby";
@@ -27,14 +28,23 @@ type AnswerWithFlags = Answer & {
 type AnswersByCategory = Map<string, AnswerWithFlags[]>;
 
 export function Voting() {
-    const { categories, players, answers, game, me, amIHost } =
-        useGameContext();
-
-    const { answersVotes, votesByAnswer } = useAnswersVotes();
+    const {
+        categories,
+        players,
+        answers,
+        game,
+        me,
+        amIHost,
+        answersVotes,
+        votesByAnswer,
+    } = useGameContext();
 
     const [goingToNextCategory, setGoingToNextCategory] = useState(false);
     const [goingToPrevCategory, setGoingToPrevCategory] = useState(false);
     const [votesTaken, setVotesTaken] = useState<Record<string, boolean>>({});
+    const [loadingVotes, setLoadingVotes] = useState<Record<string, boolean>>(
+        {},
+    );
     const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(
         null,
     );
@@ -49,6 +59,20 @@ export function Voting() {
 
         setCurrentCategoryId(categoryId);
     }, [game, categories, game?.voting_category_index]);
+
+    useEffect(() => {
+        if (answersVotes.length === 0) {
+            return;
+        }
+
+        const newVotesTaken: Record<string, boolean> = {};
+
+        for (const vote of answersVotes) {
+            newVotesTaken[vote.answer_id] = vote.value;
+        }
+
+        setVotesTaken(newVotesTaken);
+    }, [answersVotes]);
 
     const categoriesMap = useMemo(() => {
         if (!categories || !Array.isArray(categories)) {
@@ -91,6 +115,14 @@ export function Voting() {
     }, [answers, game?.letter]);
 
     async function voteAnswer(answerId: string, value: boolean) {
+        const isSameVote = votesTaken[answerId] === value;
+
+        if (isSameVote) {
+            return;
+        }
+
+        setLoadingVotes((prev) => ({ ...prev, [answerId]: true }));
+
         const newVotesTaken = { ...votesTaken, [answerId]: value };
         setVotesTaken(newVotesTaken);
 
@@ -104,6 +136,32 @@ export function Voting() {
                 onConflict: "answer_id, voter_player_id",
             },
         );
+
+        setLoadingVotes((prev) => ({ ...prev, [answerId]: false }));
+    }
+
+    async function removeVote(answerId: string) {
+        console.log("removeVote", votesTaken);
+
+        const isUnvoted = votesTaken[answerId] === undefined;
+
+        if (isUnvoted) {
+            return;
+        }
+
+        setLoadingVotes((prev) => ({ ...prev, [answerId]: true }));
+
+        const updatedVotesTaken = { ...votesTaken };
+        delete updatedVotesTaken[answerId];
+        setVotesTaken(updatedVotesTaken);
+
+        await supabase
+            .from("answer_votes")
+            .delete()
+            .eq("answer_id", answerId)
+            .eq("voter_player_id", me?.id);
+
+        setLoadingVotes((prev) => ({ ...prev, [answerId]: false }));
     }
 
     const isLastCategory =
@@ -174,6 +232,20 @@ export function Voting() {
             <div className="flex flex-col gap-y-6">
                 <LobbyHeader />
 
+                <div className="space-y-1">
+                    <h2 className="flex items-center gap-x-2 text-xl font-medium">
+                        <span>Votación de la ronda</span>
+                        <span>&mdash;</span>
+                        <span>{game?.letter}</span>
+                    </h2>
+                    <div className="flex flex-col gap-y-2">
+                        <p className="text-foreground/60 text-sm text-pretty">
+                            Acepta o rechaza las respuestas de los demás
+                            jugadores.
+                        </p>
+                    </div>
+                </div>
+
                 <motion.div
                     key="voting"
                     initial={{ opacity: 0, y: 10 }}
@@ -183,7 +255,7 @@ export function Voting() {
                     className="flex flex-col gap-y-4"
                 >
                     <div className="space-y-4">
-                        <h2 className="flex items-center justify-between gap-1 border-b px-2 text-xl font-medium">
+                        <h2 className="flex items-center justify-between gap-1 border-b px-2">
                             <span className="text-pretty">
                                 {
                                     categoriesMap.get(currentCategoryId ?? "")
@@ -195,7 +267,7 @@ export function Voting() {
                                 <span>
                                     {(game?.voting_category_index ?? 0) + 1}
                                 </span>
-                                <span>/</span>
+                                <span>de</span>
                                 <span>
                                     {game?.round_category_ids.length ?? 0}
                                 </span>
@@ -281,7 +353,7 @@ export function Voting() {
                                                             {Array.from({
                                                                 length: missingVotes,
                                                             }).map((_, i) => (
-                                                                <CircleQuestionMark
+                                                                <CircleQuestionMarkIcon
                                                                     key={`missing-${i}`}
                                                                     className="animate-in fade-in slide-in-from-bottom-10 zoom-in-50 size-4 duration-300 ease-in-out"
                                                                 />
@@ -293,6 +365,12 @@ export function Voting() {
                                                                 ? `+${points}`
                                                                 : points}
                                                         </span>
+
+                                                        {loadingVotes[
+                                                            answer.id
+                                                        ] && (
+                                                            <LoaderCircleIcon className="text-foreground/60 size-4 animate-spin" />
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -353,6 +431,19 @@ export function Voting() {
                                                                         }
                                                                     >
                                                                         <XIcon className="size-4" />
+                                                                    </Button>
+
+                                                                    <Button
+                                                                        size="icon"
+                                                                        variant="outline"
+                                                                        className="rounded-full"
+                                                                        onClick={async () =>
+                                                                            removeVote(
+                                                                                answer.id,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <EraserIcon className="size-4" />
                                                                     </Button>
                                                                 </div>
                                                             ))}

@@ -9,48 +9,9 @@ import { supabase } from "~/supabase/client";
 import { GamePhase } from "~/supabase/types";
 
 export function Finished() {
-    const { game, amIHost, players, answers } = useGameContext();
-    const { answersVotes, votesByAnswer } = useAnswersVotes();
+    const { game, amIHost, players, answers, votesByPlayer } = useGameContext();
 
     const [goingToLobby, setGoingToLobby] = useState(false);
-
-    const votesByPlayer = useMemo(() => {
-        if (
-            !answersVotes ||
-            answersVotes.length === 0 ||
-            !votesByAnswer ||
-            Object.keys(votesByAnswer).length === 0
-        ) {
-            return null;
-        }
-
-        const byPlayer: Record<string, number> = players.reduce(
-            (obj, player) => {
-                obj[player.id] = 0;
-                return obj;
-            },
-            {} as Record<string, number>,
-        );
-
-        for (const [answerId, voteResults] of Object.entries(votesByAnswer)) {
-            const playerId = answers.find(
-                (answer) => answer.id === answerId,
-            )?.player_id;
-
-            if (!playerId) {
-                continue;
-            }
-
-            const acceptedVotes = voteResults.accepted ?? 0;
-            const rejectedVotes = voteResults.rejected ?? 0;
-
-            const tally = acceptedVotes - rejectedVotes;
-
-            byPlayer[playerId] += tally;
-        }
-
-        return byPlayer;
-    }, [answersVotes, votesByAnswer]);
 
     async function handleGoToLobby() {
         if (!amIHost || !game || goingToLobby || !votesByPlayer) {

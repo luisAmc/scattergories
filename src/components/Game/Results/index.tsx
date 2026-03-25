@@ -1,4 +1,3 @@
-import { useAnswersVotes } from "~/hooks/useAnswersVotes";
 import { Header as LobbyHeader } from "../Lobby";
 import { useGameContext } from "~/hooks/useGameContext";
 import { useEffect, useMemo, useState } from "react";
@@ -10,8 +9,7 @@ import { supabase } from "~/supabase/client";
 import { Button } from "~/components/shared/Button";
 
 export function Results() {
-    const { amIHost, game, players, answers } = useGameContext();
-    const { answersVotes, votesByAnswer } = useAnswersVotes();
+    const { amIHost, game, players, votesByPlayer } = useGameContext();
 
     const [playersList, setPlayersList] = useState<Player[]>([]);
     const [showMedals, setShowMedals] = useState(false);
@@ -24,44 +22,6 @@ export function Results() {
 
         setPlayersList(players.sort((a, b) => a.score - b.score));
     }, [players]);
-
-    const votesByPlayer = useMemo(() => {
-        if (
-            !answersVotes ||
-            answersVotes.length === 0 ||
-            !votesByAnswer ||
-            Object.keys(votesByAnswer).length === 0
-        ) {
-            return null;
-        }
-
-        const byPlayer: Record<string, number> = playersList.reduce(
-            (obj, player) => {
-                obj[player.id] = 0;
-                return obj;
-            },
-            {} as Record<string, number>,
-        );
-
-        for (const [answerId, voteResults] of Object.entries(votesByAnswer)) {
-            const playerId = answers.find(
-                (answer) => answer.id === answerId,
-            )?.player_id;
-
-            if (!playerId) {
-                continue;
-            }
-
-            const acceptedVotes = voteResults.accepted ?? 0;
-            const rejectedVotes = voteResults.rejected ?? 0;
-
-            const tally = acceptedVotes - rejectedVotes;
-
-            byPlayer[playerId] += tally;
-        }
-
-        return byPlayer;
-    }, [answersVotes, votesByAnswer]);
 
     useEffect(() => {
         if (!playersList || !votesByPlayer) {
@@ -130,7 +90,7 @@ export function Results() {
                                             {index + 1}.
                                         </span>
 
-                                        <span className="text-foreground text-sm font-semibold">
+                                        <span className="text-foreground text-sm">
                                             {player.name}
                                         </span>
                                     </div>
@@ -192,7 +152,7 @@ export function Results() {
                     )}
                 </div>
 
-                {amIHost && (
+                {showMedals && amIHost && (
                     <motion.div
                         key="results-button"
                         initial={{ opacity: 0, y: 10 }}
@@ -200,7 +160,7 @@ export function Results() {
                         exit={{ opacity: 0, y: 10 }}
                         transition={{
                             duration: 0.3,
-                            delay: 0.5,
+                            delay: 0.3,
                         }}
                         className="flex flex-col"
                     >
@@ -212,6 +172,23 @@ export function Results() {
                             <span>Finalizar juego</span>
                             <CheckIcon className="size-4" />
                         </Button>
+                    </motion.div>
+                )}
+
+                {showMedals && !amIHost && (
+                    <motion.div
+                        key="waiting-for-host"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{
+                            duration: 0.3,
+                            delay: 0.3,
+                        }}
+                    >
+                        <p className="text-foreground/60 text-center text-sm text-pretty">
+                            Esperando a que el anfitrión finalice el juego...
+                        </p>
                     </motion.div>
                 )}
             </AnimatePresence>
