@@ -14,7 +14,7 @@ const nameFormSchema = z.object({
 });
 
 export function PlayerName() {
-    const { me, players } = useGameContext();
+    const { me } = useGameContext();
 
     const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +27,7 @@ export function PlayerName() {
         if (me && !doIHaveName) {
             setNameDrawer.open();
         }
-    }, [doIHaveName, players]);
+    }, [doIHaveName]);
 
     async function handleNameChange(input: z.infer<typeof nameFormSchema>) {
         const name = input.name.trim();

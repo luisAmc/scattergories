@@ -13,7 +13,7 @@ export function PlayersList() {
         }
 
         return players.sort((a, b) => b.score - a.score);
-    }, [players, game]);
+    }, [JSON.stringify(players), game]);
 
     return (
         <div className="flex flex-col gap-y-2">
