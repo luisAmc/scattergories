@@ -1,6 +1,20 @@
 export const CODE_LENGTH = 6;
 
-export const CATEGORIES = ["A", "B", "C", "D", "E", "F", "G"];
+export const CATEGORIES = [
+    "Nombre",
+    "Apellido",
+    "Animal",
+    "Objeto",
+    "Alimento",
+    "Deporte",
+    "Instrumento musical",
+    "Animal",
+    "Lugar",
+    "Objeto",
+    "Color",
+    "Alimento",
+    "Lugar",
+];
 
 export const SESSION_KEY = "scattergories";
 
