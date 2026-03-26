@@ -83,6 +83,6 @@
     }
     body,
     #__next {
-        @apply bg-background text-foreground font-sans;
+        @apply bg-background text-foreground h-dvh scroll-smooth font-sans antialiased;
     }
 }

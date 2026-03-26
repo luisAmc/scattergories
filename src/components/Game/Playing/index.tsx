@@ -121,13 +121,13 @@ export function Playing() {
 
     const saveAnswer = useCallback(
         async (categoryId: string, text: string) => {
-            setSavingAnswers((prev) => ({ ...prev, [categoryId]: true }));
-
             const safeText = text.trim();
 
             if (!safeText) {
                 return;
             }
+            
+            setSavingAnswers((prev) => ({ ...prev, [categoryId]: true }));
 
             await supabase.from("answers").upsert(
                 {
