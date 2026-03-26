@@ -74,7 +74,9 @@ export function RoundControls() {
 
         const roundLetter = generateRandomLetter();
 
-        const roundCategories = input.categories;
+        const roundCategories = input.categories.sort(
+            () => Math.random() - 0.5,
+        );
 
         await supabase
             .from("games")

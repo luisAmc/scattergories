@@ -31,7 +31,7 @@ export function Checkbox({
                 <HeadlessCheckbox
                     checked={Boolean(value)}
                     onChange={onChange}
-                    className="group data-checked:bg-primary data-checked:text-primary-foreground bg-background flex size-4 items-center justify-center rounded border"
+                    className="group data-checked:bg-primary data-checked:text-primary-foreground bg-background focus-visible:ring-ring flex size-4 items-center justify-center rounded border focus-visible:ring-3 focus-visible:ring-offset-2"
                     {...props}
                 >
                     <CheckIcon className="size-3 opacity-0 group-data-checked:opacity-100" />
