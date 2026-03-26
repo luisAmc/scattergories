@@ -8,6 +8,7 @@ export interface Player {
 
 export const GamePhase = {
     LOBBY: "lobby",
+    PREPARING: "preparing",
     PLAYING: "playing",
     VOTING: "voting",
     RESULTS: "results",
@@ -25,6 +26,7 @@ export interface Game {
     round_category_ids: string[];
     voting_category_index: number;
     letter: string;
+    round_duration_seconds: number;
     ends_at: string;
     created_at: string;
 }

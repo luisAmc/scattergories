@@ -6,6 +6,7 @@ create table public.games (
   phase text not null default 'lobby' check (
     phase in (
       'lobby',
+      'preparing',
       'playing',
       'voting',
       'results',
@@ -15,6 +16,7 @@ create table public.games (
   round_category_ids uuid[] default '{}',
   round_number int not null default 0,
   voting_category_index int not null default 0,
+  round_duration_seconds int not null default 90,
   letter text,
   ends_at timestamptz,
   created_at timestamptz not null default now()

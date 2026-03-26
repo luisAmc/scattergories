@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { useGameContext } from "~/hooks/useGameContext";
 import { useZodForm } from "~/components/shared/Form";
 import z from "zod";
+import { generateRandomLetter } from "~/utils/generateRandomLetter";
 
 export const roundControlsForm = z.object({
     duration: z
@@ -25,14 +26,12 @@ export const roundControlsForm = z.object({
         .min(1, "Tiene que haber al menos una categoría."),
 });
 
-const ONE_SECOND_IN_MS = 1_000;
-
 export function RoundControls() {
     const { game, players, categories, amIHost } = useGameContext();
 
     const createCategoryDrawer = useDrawer();
     const [isSetupDone, setIsSetupDone] = useState(false);
-    const [startingRound, setStartingRound] = useState(false);
+    const [movingToPreparing, setMovingToPreparing] = useState(false);
 
     const controlsForm = useZodForm({
         schema: roundControlsForm,
@@ -66,39 +65,34 @@ export function RoundControls() {
         doesPlayerHaveName(player),
     );
 
-    async function startGame(input: z.infer<typeof roundControlsForm>) {
-        if (!amIHost || !allPlayersHaveName || startingRound) {
+    async function moveToPreparing(input: z.infer<typeof roundControlsForm>) {
+        if (!amIHost || !allPlayersHaveName || movingToPreparing) {
             return;
         }
 
-        setStartingRound(true);
+        setMovingToPreparing(true);
 
-        const roundLetter = String.fromCharCode(
-            65 + Math.floor(Math.random() * 26),
-        );
-
-        const roundDurationMs = input.duration * ONE_SECOND_IN_MS;
-        const endsAt = new Date(Date.now() + roundDurationMs).toISOString();
+        const roundLetter = generateRandomLetter();
 
         const roundCategories = input.categories;
 
-        const { data, error } = await supabase
+        await supabase
             .from("games")
             .update({
                 letter: roundLetter,
-                phase: GamePhase.PLAYING,
+                phase: GamePhase.PREPARING,
                 round_number: game!.round_number + 1,
                 round_category_ids: roundCategories,
-                ends_at: endsAt,
+                round_duration_seconds: input.duration,
             })
             .eq("id", game!.id);
 
-        setStartingRound(false);
+        setMovingToPreparing(false);
     }
 
     return (
         <>
-            <Form form={controlsForm} onSubmit={startGame}>
+            <Form form={controlsForm} onSubmit={moveToPreparing}>
                 <div className="flex flex-col gap-y-2">
                     <div className="text-foreground text-sm font-semibold">
                         Configuración de la ronda

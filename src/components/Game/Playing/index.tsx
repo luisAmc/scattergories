@@ -11,7 +11,7 @@ import { useTimeLeft } from "~/hooks/useTimeLeft";
 import z from "zod";
 import { Button } from "~/components/shared/Button";
 import { AnimatePresence, motion } from "framer-motion";
-import { LoaderCircleIcon } from "lucide-react";
+import { LoaderCircleIcon, SaveIcon } from "lucide-react";
 
 function generateAnswersFormSchema(categories: Category[]) {
     const shape: Record<string, z.ZodType<string | undefined>> = {};
@@ -286,6 +286,7 @@ export function Playing() {
                                 )}
                                 onClick={saveAllAnswers}
                             >
+                                <SaveIcon className="size-4" />
                                 <span>Guardar respuestas</span>
                             </Button>
                         </motion.div>

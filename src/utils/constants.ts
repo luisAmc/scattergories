@@ -1,19 +1,18 @@
+export const ONE_SECOND_IN_MS = 1_000;
+
 export const CODE_LENGTH = 6;
 
 export const CATEGORIES = [
     "Nombre",
     "Apellido",
-    "Animal",
+    "Ciudad o País",
+    "Fruta o Vegetal",
     "Objeto",
-    "Alimento",
-    "Deporte",
-    "Instrumento musical",
+    "Profesión",
     "Animal",
-    "Lugar",
-    "Objeto",
     "Color",
-    "Alimento",
     "Lugar",
+    "Acción",
 ];
 
 export const SESSION_KEY = "scattergories";
